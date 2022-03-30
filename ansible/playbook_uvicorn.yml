@@ -1,0 +1,63 @@
+---
+  - name: "SCRIPT ANSIBLE PARA ATUALIZAÇÂO REMOTA DOS REPOSITÓRIOS"
+    hosts: servidor
+    
+    ## VARAIAVEIS DE IMPUTE QUE O USUARIO PRECISA PREENCHER AO EXECUTAR O ANSIBLE
+    gather_facts: false
+    vars_prompt:
+      - name: git_user
+        prompt: Usuario do GitLab
+      - name: git_pass
+        prompt: Senha ou Token do GitLab
+
+    ## VARIAVEIS A SEREM MODIFICADAS PELO CUCKIECUTTER
+    vars:
+      - destdir: /var/www
+      - projectname: datahub-fastapi
+      - host_user: vagrant
+      - project_runner: 'uvicorn main:app --host=0.0.0.0 --port=8000'
+
+    ## TAREFAS EXECUTADAS ##
+    tasks:
+
+      ## DERRUBANDO PROCESSO ANTERIOR DO SERVIDOR UVICORN ##
+      - name: "VERIFICANDO SE SERVIDOR ESTÀ EM EXECUÇÃO"
+        shell: "ps -ef | grep '{{project_runner}}' | grep -v grep |awk '{print $2}' | head -n 1"
+        register: running_process
+
+      - name: "MATANDO SERVIÇO DO SERVIDOR"
+        shell: "kill {{ item }}"
+        with_items: "{{running_process.stdout_lines}}"
+        become: yes
+        when: running_process.stdout_lines != ""
+      ####
+
+      ## BAIXANDO ATUALIZAÇÃO DO REPOSITORIO ##
+      - name: "EFETUANDO PULL DO REPOSITÓRIO GITLAB DTI"
+        become: yes
+        git:
+          repo: "http://{{git_user}}:{{git_pass}}@git.palmas.to.gov.br/dti-desenvolvimento/{{projectname}}.git"
+          dest: '{{destdir}}/{{projectname}}'
+
+      - name: "ALTERANDO OWNER DO PROJETO PARA USER LOCAL"
+        become: yes
+        file:
+          path: '{{destdir}}'
+          state: directory
+          recurse: yes
+          owner: "{{host_user}}"
+          group: "{{host_user}}"
+      ## VERIFICANDO E INSTALANDO DEPENDENCIAS PENDENTES ##
+      - name: "VERIFICANDO DEPENDÊNCIAS"
+        pip:
+          requirements: "{{destdir}}/{{projectname}}/requirements.txt"
+        become: yes
+        register: pipinstallout
+      ## SUBINDO NOVAMENTE O SERVIDOR LOGS DISPONIVEIS NO ARQUIVO SELECIONADO ##
+      - name: "SUBINDO O PROJETO NOVAMENTE COM UVICORN"
+        async: 10
+        poll: 0
+        shell: '{{project_runner}} >> uvicorn.access.log 2>&1 &'
+        args:
+          chdir: "{{destdir}}/{{projectname}}"
+        register: apprestart
