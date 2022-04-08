@@ -1,5 +1,3 @@
 ---
 # vars file for docker-role
-destdir: /var/www
-projectname: datahub-fastapi
-host_user: vagrant
+

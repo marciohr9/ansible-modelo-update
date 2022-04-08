@@ -1,0 +1,4 @@
+---
+destdir: /var/www
+projectname: datahub-fastapi
+host_user: vagrant
