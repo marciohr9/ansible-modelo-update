@@ -1,0 +1,4 @@
+---
+# defaults file for checkup-role
+dependencias: ['docker.io', 'python3', 'python3-pip']
+use_pip: false

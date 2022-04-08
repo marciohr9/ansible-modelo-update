@@ -1,5 +1,5 @@
 [servidor]
-192.168.56.2 ansible_user=vagrant ansible_ssh_private_key_file="/home/agtec/Documents/training-ansible/vagrant/.vagrant/machines/wordpress/virtualbox/private_key"
+192.168.56.2 ansible_user=vagrant ansible_ssh_private_key_file="/home/agtec/Documentos/github/training-ansible/vagrant/.vagrant/machines/wordpress/virtualbox/private_key"
 
 [servidor:vars]
 ansible_python_interpreter=/usr/bin/python3

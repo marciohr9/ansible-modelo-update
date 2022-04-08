@@ -1,2 +1,40 @@
 ---
 # tasks file for uvicorn-role
+- name: "VERIFICANDO SE SERVIDOR ESTÀ EM EXECUÇÃO"
+  shell: "ps -ef | grep '{{project_runner}}' | grep -v grep |awk '{print $2}' | head -n 1"
+  register: running_process
+
+- name: "MATANDO SERVIÇO DO SERVIDOR"
+  shell: "kill {{ item }}"
+  with_items: "{{running_process.stdout_lines}}"
+  become:  true
+  when: running_process.stdout_lines != ""
+
+- name: "EFETUANDO PULL DO REPOSITÓRIO GITLAB DTI"
+  become:  true
+  git:
+    repo: "http://{{git_user}}:{{git_pass}}@git.palmas.to.gov.br/dti-desenvolvimento/{{projectname}}.git"
+    dest: '{{destdir}}/{{projectname}}'
+
+- name: "ALTERANDO OWNER DO PROJETO PARA USER LOCAL"
+  become: true
+  file:
+    path: '{{destdir}}'
+    state: directory
+    recurse: yes
+    owner: "{{host_user}}"
+    group: "{{host_user}}"
+
+- name: "VERIFICANDO DEPENDÊNCIAS"
+  pip:
+    requirements: "{{destdir}}/{{projectname}}/requirements.txt"
+  become: true
+  register: pipinstallout
+
+- name: "SUBINDO O PROJETO NOVAMENTE COM UVICORN"
+  async: 10
+  poll: 0
+  shell: '{{project_runner}} >> uvicorn.access.log 2>&1 &'
+  args:
+    chdir: "{{destdir}}/{{projectname}}"
+  register: apprestart

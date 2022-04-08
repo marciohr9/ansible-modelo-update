@@ -1,11 +1,12 @@
 ---
 # tasks file for docker-role
-- name: "INSTALANDO DEPENDENCIAS CASO HAJA"
-  apt:
-    name: "{{ dependencias }}"
-    state: latest
+- name: "Checando e adicionando usuário a lista de usuários docker"
+  shell: "usermod -aG docker {{ host_user }}"
   become: true
-  
+
+# - name: "recarregando grupos"
+#   shell: "exec newgrp docker"
+
 - name: "EFETUANDO PULL DO REPOSITÓRIO GITLAB DTI"
   become: true
   git:

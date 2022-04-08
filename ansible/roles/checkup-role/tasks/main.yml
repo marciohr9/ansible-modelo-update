@@ -1,0 +1,13 @@
+---
+# tasks file for checkup-role
+- name: "INSTALANDO DEPENDENCIAS HOST"
+  apt:
+    name: "{{ dependencias }}"
+    state: latest
+    update_cache: true
+  become: true
+
+- name: "INSTALANDO DEPENCENDIAS PIP"
+  pip:
+    name: "{{ pip_dependencias }}"
+  when: use_pip | bool

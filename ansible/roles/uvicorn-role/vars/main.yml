@@ -3,4 +3,3 @@
 destdir: /var/www
 projectname: datahub-fastapi
 host_user: vagrant
-dependencias: ['docker', 'python3', 'postgresql', ]

@@ -1,0 +1,5 @@
+---
+# vars file for checkup-role
+dependencias: ['docker.io', 'python3', 'python3-pip',]
+pip_dependencias: ['docker','docker-compose']
+use_pip: true
