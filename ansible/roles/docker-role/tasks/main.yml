@@ -1,2 +1,39 @@
 ---
 # tasks file for docker-role
+- name: "INSTALANDO DEPENDENCIAS CASO HAJA"
+  apt:
+    name: "{{ dependencias }}"
+    state: latest
+  become: true
+  
+- name: "EFETUANDO PULL DO REPOSITÓRIO GITLAB DTI"
+  become: true
+  git:
+    repo: "http://{{git_user}}:{{git_pass}}@git.palmas.to.gov.br/dti-desenvolvimento/{{projectname}}.git"
+    dest: '{{destdir}}/{{projectname}}'
+
+- name: "ALTERANDO OWNER DO PROJETO PARA USER LOCAL"
+  become: true
+  file:
+    path: '{{destdir}}'
+    state: directory
+    recurse: true
+    owner: "{{host_user}}"
+    group: "{{host_user}}"
+
+- name: "PARANDO CONTAINER ATUAL"
+  community.docker.docker_compose:
+    project_src: "{{destdir}}/{{projectname}}/Dockerfiles"
+    state: absent
+  register: dck_output
+
+- name: "CRIANDO UMA NOVA IMAGEM DO PROJETO ATUALIZADO"
+  community.docker.docker_compose:
+    project_name: '{{projectname}}'
+    project_src: "{{destdir}}/{{projectname}}/Dockerfiles/"
+  register: dck_output
+
+- name: "Debug Docker"
+  ansible.builtin.debug:
+    var: dck_output
+      ##

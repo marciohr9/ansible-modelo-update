@@ -1,0 +1,14 @@
+---
+- name: "Playbook para atualização remota do projeto em docker"
+  host: servidor
+  gather_facts: false
+  vars_prompt:
+    - name: git_user
+      prompt: Usuario do GitLab
+    - name: git_pass
+      prompt: Senha ou Token do GitLab
+    - name: server_type
+      prompt: Escreva o modelo de atualização desejado ("docker", "uvicorn")
+  roles:
+    - { role: roles/docker-role, when: server_type == "docker" }
+    - { role: roles/uvicorn-role, when: server_type == "uvicorn" }
